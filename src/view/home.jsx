@@ -200,7 +200,11 @@ const Main = ({ token }) => {
       .then((response) => {
         console.log(response);
         axios
-          .get(response.data.url)
+          .get(response.data.url,{
+            headers:{
+              "Cookie":""
+            }
+          })
           .then((e) => {
             console.log(e);
           })
