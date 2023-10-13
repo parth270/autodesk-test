@@ -223,6 +223,7 @@ const Main = ({ token }) => {
             downloadLink.click();
 
             document.body.removeChild(downloadLink);
+            setLoading(false);
           }
         };
 
@@ -674,8 +675,8 @@ const Home = () => {
   const Token = useSelector((state) => state.home.AccessToken);
 
   const getToken = () => {
-    const client_id = process.env.REACT_CLIENT_ID
-    const client_secret = process.env.REACT_CLIENT_SECRET
+    const client_id = localStorage.getItem("client-id");
+    const client_secret = localStorage.getItem("client-secret");
     axios
       .post(
         "https://developer.api.autodesk.com/authentication/v1/authenticate",
