@@ -209,9 +209,16 @@ const Main = ({ token }) => {
 
             const downloadLink = document.createElement("a");
             downloadLink.href = zipURL;
-
+            if (file) {
+              const nname = file.name;
+              nname[nname.length - 3] = "z";
+              nname[nname.length - 2] = "i";
+              nname[nname.length - 1] = "p";
+              downloadLink.download = nname;
+            } else {
+              downloadLink.download = "output.zip";
+            }
             // Set the download attribute to specify the default filename for the download
-            downloadLink.download = "output.zip";
 
             // Add some text or label for the link
             downloadLink.innerText = "Download File";
