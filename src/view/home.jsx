@@ -5,7 +5,10 @@ import Dropzone, { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { setAny, setToken } from "../services/scroll";
 import toast, { Toaster } from "react-hot-toast";
-
+import ServiceClient from "../plugins/ServiceClient";
+import Zip from "../plugins/ZipHelper";
+import tools from "../plugins/Tools";
+import JSZip from "jszip";
 const bucket = {
   bucketKey: "a241faa",
   bucketOwner: "Uzxi1KCr05vZG28oSZAJTDa4uzUKJRUo",
@@ -159,6 +162,111 @@ const Main = ({ token }) => {
 
     return base64Urn;
   }
+  const [chcheck, setCheckec] = useState(false);
+  const [urnTableData, setUrnTable] = useState(null);
+  const [playThing, setPlayThing] = useState(null);
+  const [chchekch, setChekchek] = useState(false);
+  const zip = new JSZip();
+  useEffect(() => {
+    if (urnTableData !== null) {
+      if (!chcheck) {
+        const apapap = async () => {
+          const serviceClient = new ServiceClient({ token: playThing.token });
+          console.log(urnTableData.length);
+          const falseArray = Array(urnTableData.length).fill(false);
+          const alalala = async (item, i) => {
+            const ress = await serviceClient.getDerivativesAsync(
+              playThing.urn,
+              item
+            );
+            console.log(
+              ress.data,
+              item
+                .split("/")
+                .slice(1)
+                .map((e) => decodeURIComponent(e))
+                .join("/"),
+              i
+            );
+            if (ress.data) {
+              zip.file(
+                item
+                  .split("/")
+                  .slice(1)
+                  .map((e) => decodeURIComponent(e))
+                  .join("/"),
+                ress.data
+              );
+            }
+          };
+
+          await Promise.all(urnTableData.map(alalala));
+
+          const zipBlob = await zip.generateAsync({ type: "blob" });
+          console.log(zipBlob);
+          if (zipBlob) {
+            const zipURL = URL.createObjectURL(zipBlob);
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = zipURL;
+
+            // Set the download attribute to specify the default filename for the download
+            downloadLink.download = "output.zip";
+
+            // Add some text or label for the link
+            downloadLink.innerText = "Download File";
+
+            // Append the link to the document (e.g., to a specific container or the body)
+            document.body.appendChild(downloadLink);
+
+            // Simulate a click on the link to trigger the download
+            downloadLink.click();
+
+            document.body.removeChild(downloadLink);
+          }
+        };
+
+        apapap();
+        setCheckec(true);
+      } else {
+      }
+    }
+  }, [urnTableData]);
+
+  const [avkdsa, setkbbsvf] = useState(false);
+
+  useEffect(() => {
+    const checkjbka = async () => {
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      console.log(zipBlob);
+      if (zipBlob) {
+        const zipURL = URL.createObjectURL(zipBlob);
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = zipURL;
+
+        // Set the download attribute to specify the default filename for the download
+        downloadLink.download = "output.zip";
+
+        // Add some text or label for the link
+        downloadLink.innerText = "Download File";
+
+        // Append the link to the document (e.g., to a specific container or the body)
+        document.body.appendChild(downloadLink);
+
+        // Simulate a click on the link to trigger the download
+        downloadLink.click();
+
+        document.body.removeChild(downloadLink);
+      }
+    };
+    if (chcheck) {
+      if (!avkdsa) {
+        checkjbka();
+        setkbbsvf(true);
+      }
+    }
+  }, [chchekch]);
 
   const getStatus = (urn, fallback) => {
     axios
@@ -200,10 +308,10 @@ const Main = ({ token }) => {
       .then((response) => {
         console.log(response);
         axios
-          .get(response.data.url,{
-            headers:{
-              "Cookie":""
-            }
+          .get(response.data.url, {
+            headers: {
+              Cookie: "",
+            },
           })
           .then((e) => {
             console.log(e);
@@ -238,6 +346,135 @@ const Main = ({ token }) => {
     //     console.error(error);
     //   });
   };
+  console.log(urnTableData);
+  const processDownloadResult = (urn, promise, serviceClient, zip, re) => {
+    console.log(urn, promise, serviceClient, zip, re);
+    return promise
+      .then(async (e) => {
+        // console.log(e);
+        // const downloadLink = document.createElement("a");
+        // downloadLink.href = URL.createObjectURL(e.data);
+
+        // // Set the download attribute to specify the default filename for the download
+        // downloadLink.download = urn
+        //   .split("/")
+        //   .slice(1)
+        //   .map((e) => decodeURIComponent(e))
+        //   .join("/");
+
+        // // Add some text or label for the link
+        // downloadLink.innerText = "Download File";
+
+        // // Append the link to the document (e.g., to a specific container or the body)
+        // document.body.appendChild(downloadLink);
+
+        // // Simulate a click on the link to trigger the download
+        // downloadLink.click();
+
+        // Remove the link from the document (optional)
+        if (re) {
+          const arr = await serviceClient.getSVFAssets(e.data, urn);
+          console.log(arr);
+          setUrnTable([urn, ...arr]);
+          // setUrnTable(urn,)
+        }
+
+        // zip.addFile(
+        //   urn
+        //     .split("/")
+        //     .slice(1)
+        //     .map((e) => decodeURIComponent(e))
+        //     .join("/"),
+        //   e.data
+        // );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  async function generateZIP(accessToken, urn, guid, derivative) {
+    // Import necessary libraries and tools for API requests and ZIP file creation.
+
+    const serviceClient = new ServiceClient({ token: accessToken });
+
+    try {
+      // Obtain the manifest for the given URN.
+      // const manifest = await serviceClient.getManifest(urn);
+
+      // // Find the derivative with the specified GUID.
+      // const derivative = manifest.derivatives.find(
+      //   (derivative) => derivative.guid === guid
+      // );
+
+      // if (!derivative) {
+      //   throw new Error("Derivative not found for the specified GUID.");
+      // }
+
+      // Initialize a ZIP file.
+      const zip = new Zip();
+
+      console.log(derivative);
+      // setUrnTable([
+      //   "urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTI0MWZhYS90ZXN0Lm53ZA/output/0/0.svf",
+      // ]);
+      if (derivative) {
+        await processDownloadResult(
+          "urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTI0MWZhYS90ZXN0Lm53ZA/output/0/0.svf",
+          serviceClient.getDerivativesAsync(
+            urn,
+            "urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTI0MWZhYS90ZXN0Lm53ZA/output/0/0.svf"
+          ),
+          serviceClient,
+          zip,
+          true
+        );
+      }
+      // Download the derivative and add it to the ZIP file.
+      // await processDerivative(serviceClient, urn, derivative, zip);
+
+      // await serviceClient
+      //   .getDerivativesAsync(
+      //     urn,
+      //     "urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTI0MWZhYS90ZXN0Lm53ZA/output/0/0.svf"
+      //   )
+      //   .then(async (e) => {
+      //     console.log(e);
+      //     const res = await serviceClient.getSVFAssets(e.data, urn);
+      //     res.forEach((e) => {
+      //       console.log(e);
+      //       setUrnTable([...urnTableData, e]);
+      //     });
+      //   })
+      //   .catch((e) => {});
+
+      // Generate the ZIP file as a downloadable file.
+      // const zipBuffer = await zip.generate(); // Replace with the actual method for generating the ZIP file.
+
+      // // Prepare the ZIP file for download.
+      // const zipBlob = new Blob([zipBuffer], { type: "application/zip" });
+      // const zipURL = URL.createObjectURL(zipBlob);
+      return "";
+    } catch (error) {
+      console.error("Error generating ZIP:", error);
+      throw error;
+    }
+  }
+
+  async function processDerivative(serviceClient, urn, derivative, zip) {
+    if (derivative.children && derivative.children.length > 0) {
+      for (const child of derivative.children) {
+        await processDerivative(serviceClient, urn, child, zip);
+      }
+    }
+
+    // Download the derivative and add it to the ZIP file.
+    const derivativeData = await serviceClient.getDerivativesAsync(
+      urn,
+      derivative.urn
+    );
+    zip.addFile(derivative.urn, derivativeData);
+  }
 
   const UploadFile = (filee) => {
     setLoading(true);
@@ -325,10 +562,25 @@ const Main = ({ token }) => {
                     getStatus(urnSource, (e) => {
                       const geomChild = e.data.derivatives[0].children[0];
                       console.log(geomChild);
-                      downloadFile(token, urnSource, "0.svf");
+                      // downloadFile(token, urnSource, "0.svf");
                       toast.success(
                         "Your File has been translated to SVF Successfully"
                       );
+
+                      setPlayThing({
+                        token: token,
+                        urn: urnSource,
+                        guid: geomChild.guid,
+                        derivative: e.data.derivatives[0],
+                      });
+
+                      generateZIP(
+                        token,
+                        urnSource,
+                        geomChild.guid,
+                        e.data.derivatives[0]
+                      );
+
                       // axios.get(`https://developer.api.autodesk.com/modelderivative/v2/designdata/${urnSource}/manifest/{{t6_obj_urn_0}}/signedcookies`)
                       // axios
                       //   .get(
@@ -383,6 +635,21 @@ const Main = ({ token }) => {
               ) : (
                 <Loader />
               )}
+              {playThing && (
+                <div
+                  className="w-[100%] h-[40px] bg-black mt-[10px] flex items-center justify-center  text-white font-medium text-[13px]"
+                  onClick={async () => {
+                    generateZIP(
+                      playThing.token,
+                      playThing.urn,
+                      playThing.guid,
+                      playThing.derivatives
+                    );
+                  }}
+                >
+                  Generate Zip
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -407,8 +674,8 @@ const Home = () => {
   const Token = useSelector((state) => state.home.AccessToken);
 
   const getToken = () => {
-    const client_id = localStorage.getItem("client-id");
-    const client_secret = localStorage.getItem("client-secret");
+    const client_id = process.env.REACT_CLIENT_ID
+    const client_secret = process.env.REACT_CLIENT_SECRET
     axios
       .post(
         "https://developer.api.autodesk.com/authentication/v1/authenticate",
