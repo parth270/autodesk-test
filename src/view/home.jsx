@@ -210,11 +210,13 @@ const Main = ({ token }) => {
             const downloadLink = document.createElement("a");
             downloadLink.href = zipURL;
             if (file) {
+              function replaceFileExtension(filename) {
+                // Use a regular expression to replace "nwd" with "zip"
+                return filename.replace(/\.[^.]+$/, ".zip");
+              }
               const nname = file.name;
-              nname[nname.length - 3] = "z";
-              nname[nname.length - 2] = "i";
-              nname[nname.length - 1] = "p";
-              downloadLink.download = nname;
+
+              downloadLink.download = replaceFileExtension(nname);
             } else {
               downloadLink.download = "output.zip";
             }
